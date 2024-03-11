@@ -19,7 +19,7 @@ const App: React.FC = () => {
       <View style={styles.navBar}>
         <TouchableOpacity onPress={eventCheck}>
           {/*todo 글 작성 버튼*/}
-          <Feather name="plus-square" size={24} color="#6D6875" />
+          <Feather name="edit-3" size={24} color="#6D6875" />
         </TouchableOpacity>
       </View>
 

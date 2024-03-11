@@ -47,7 +47,7 @@ const styles = StyleSheet.create<any>({
   articleHeaderIcon: {
     color: '#B7B7B7',
     fontSize: 18,
-    marginLeft: 10,
+    marginLeft: 8,
   },
   boundary: {
     padding: 1,
@@ -58,26 +58,6 @@ const styles = StyleSheet.create<any>({
     fontSize: 15,
     letterSpacing: 0.5,
     lineHeight: 23,
-  },
-
-  //todo 진행중
-  tooltipMenu: {
-    position: 'absolute',
-    right: 0,
-    top: 30,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    padding: 8,
-    shadowColor: 'black',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  tooltipMenuItem: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    fontSize: 16,
   },
 });
 
