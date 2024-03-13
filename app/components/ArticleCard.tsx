@@ -14,13 +14,15 @@ interface Article {
   date: string;
   content: string;
   bookMark: boolean;
+  publish: boolean;
 }
 
 const ArticleCard: React.FC<{
   article: Article;
   menuVisible: boolean;
   toggleMenu: () => void;
-}> = ({ article, menuVisible, toggleMenu }) => {
+  onDelete: (articleId: string) => void;
+}> = ({ article, menuVisible, toggleMenu, onDelete }) => {
   const menuWidth = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -52,7 +54,7 @@ const ArticleCard: React.FC<{
                 <TouchableOpacity onPress={eventCheck}>
                   <Feather name="edit" style={styles.articleHeaderIcon} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={eventCheck}>
+                <TouchableOpacity onPress={() => onDelete(article.id)}>
                   <Feather name="trash-2" style={styles.articleHeaderIcon} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={eventCheck}>

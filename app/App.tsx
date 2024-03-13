@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   View,
@@ -7,16 +7,57 @@ import {
   StyleSheet,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Feather } from '@expo/vector-icons';
 import ArticleCard from './components/ArticleCard';
 import WritingModal from './components/WritingModal';
 
-import articles from './utils/mockText';
+interface Article {
+  id: string;
+  date: string;
+  content: string;
+  bookMark: boolean;
+  publish: boolean;
+}
 
 const App: React.FC = () => {
   const [visibleMenuId, setVisibleMenuId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [articles, setArticles] = useState<Article[]>([]);
+  console.log(articles);
+  useEffect(() => {
+    const loadArticles = async () => {
+      const articlesJson = await AsyncStorage.getItem('articles');
+      if (articlesJson) {
+        let loadedArticles: Article[] = JSON.parse(articlesJson);
+        loadedArticles.sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+        setArticles(loadedArticles);
+      }
+    };
+    loadArticles();
+  }, []);
+
+  const addNewArticle = (newArticle: Article) => {
+    setArticles((currentArticles) => {
+      const updatedArticles = [...currentArticles, newArticle];
+      return updatedArticles.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+    });
+  };
+
+  const deleteArticle = (articleId: string) => {
+    setArticles((currentArticles) => {
+      const filteredArticles = currentArticles.filter(
+        (article) => article.id !== articleId,
+      );
+      AsyncStorage.setItem('articles', JSON.stringify(filteredArticles));
+      return filteredArticles;
+    });
+  };
 
   const toggleMenu = (id: any) => {
     visibleMenuId === id ? setVisibleMenuId(null) : setVisibleMenuId(id);
@@ -33,7 +74,11 @@ const App: React.FC = () => {
             <Feather name="edit-3" size={24} color="#6D6875" />
           </TouchableOpacity>
         </View>
-        <WritingModal isVisible={modalVisible} onClose={toggleModal} />
+        <WritingModal
+          isVisible={modalVisible}
+          onClose={toggleModal}
+          onAddArticle={addNewArticle}
+        />
         <FlatList
           data={articles}
           keyExtractor={(item) => item.id}
@@ -42,6 +87,7 @@ const App: React.FC = () => {
               article={item}
               menuVisible={visibleMenuId === item.id}
               toggleMenu={() => toggleMenu(item.id)}
+              onDelete={deleteArticle}
             />
           )}
           contentContainerStyle={styles.listContainer}
