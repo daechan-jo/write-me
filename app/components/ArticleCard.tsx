@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import Article from '../interfaces/Article';
 import {
   Animated,
   Text,
@@ -9,6 +8,13 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import eventCheck from '../utils/eventCheck';
+
+interface Article {
+  id: string;
+  date: string;
+  content: string;
+  bookMark: boolean;
+}
 
 const ArticleCard: React.FC<{
   article: Article;
@@ -78,6 +84,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginLeft: 10,
     marginRight: 10,
+    shadowOpacity: 0.1,
+    shadowRadius: 3.5,
   },
   articleHeader: {
     flexDirection: 'row',
@@ -102,7 +110,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   articleContent: {
-    fontSize: 15,
+    fontSize: 16,
     letterSpacing: 0.5,
     lineHeight: 23,
   },
