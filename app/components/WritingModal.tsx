@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   StyleSheet,
@@ -20,6 +20,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import formatDate from '../utils/formatDate';
 
 const deviceHeight = Dimensions.get('window').height;
@@ -27,9 +28,52 @@ const deviceHeight = Dimensions.get('window').height;
 interface WritingModalProps {
   isVisible: boolean;
   onClose: () => void;
+  onAddArticle: (newArticle: Article) => void;
+}
+interface Article {
+  id: string;
+  date: string;
+  content: string;
+  bookMark: boolean;
+  publish: boolean;
 }
 
-const WritingModal: React.FC<WritingModalProps> = ({ isVisible, onClose }) => {
+const generateID = () => Date.now().toString();
+const getCurrentDate = () => new Date().toString();
+
+const WritingModal: React.FC<WritingModalProps> = ({
+  isVisible,
+  onClose,
+  onAddArticle,
+}) => {
+  const [content, setContent] = useState('');
+
+  const saveArticle = async () => {
+    const newArticle: Article = {
+      id: generateID(),
+      date: getCurrentDate(),
+      content: content,
+      bookMark: false,
+      publish: false,
+    };
+
+    try {
+      const existingArticlesJson = await AsyncStorage.getItem('articles');
+      const existingArticles = existingArticlesJson
+        ? JSON.parse(existingArticlesJson)
+        : [];
+      const updatedArticles = [...existingArticles, newArticle];
+      await AsyncStorage.setItem('articles', JSON.stringify(updatedArticles));
+
+      onAddArticle(newArticle);
+
+      onClose();
+      setContent('');
+    } catch (error) {
+      console.error('Failed to save the article:', error);
+    }
+  };
+
   const translateY = useSharedValue(0);
   useEffect(() => {
     if (!isVisible) {
@@ -37,7 +81,7 @@ const WritingModal: React.FC<WritingModalProps> = ({ isVisible, onClose }) => {
     }
   }, [isVisible]);
 
-  const panGesture = Gesture.Pan()
+  const closeGesture = Gesture.Pan()
     .onUpdate((event) => {
       translateY.value = event.translationY;
     })
@@ -51,7 +95,7 @@ const WritingModal: React.FC<WritingModalProps> = ({ isVisible, onClose }) => {
             easing: Easing.inOut(Easing.cubic),
           },
           () => {
-            runOnJS(onClose)();
+            runOnJS(onClose)(); // UI스레드를 사용하지 않으면 강제종료댐. 외?
           },
         );
       } else {
@@ -69,7 +113,6 @@ const WritingModal: React.FC<WritingModalProps> = ({ isVisible, onClose }) => {
         : translateY.value;
     topPosition =
       topPosition > deviceHeight * 0.15 ? deviceHeight * 0.15 : topPosition;
-
     return {
       top: deviceHeight * 0.15,
       transform: [{ translateY: topPosition }],
@@ -86,11 +129,11 @@ const WritingModal: React.FC<WritingModalProps> = ({ isVisible, onClose }) => {
       visible={isVisible}
       onRequestClose={onClose}
     >
-      <GestureDetector gesture={panGesture}>
+      <GestureDetector gesture={closeGesture}>
         <Animated.View style={[styles.modalContainer, animatedStyle]}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalDate}>{formattedToday}</Text>
-            <TouchableOpacity onPress={onClose}>
+            <TouchableOpacity onPress={saveArticle}>
               <Text style={styles.modalCloseButtonText}>완료버튼</Text>
             </TouchableOpacity>
           </View>
@@ -100,6 +143,8 @@ const WritingModal: React.FC<WritingModalProps> = ({ isVisible, onClose }) => {
               style={styles.textInput}
               placeholder="오늘의 성찰을 여기에 디폴트로 깔아주면 될듯"
               multiline
+              value={content}
+              onChangeText={setContent}
             />
           </ScrollView>
         </Animated.View>
