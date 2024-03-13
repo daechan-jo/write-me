@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Feather } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ArticleCard from './components/ArticleCard';
 import WritingModal from './components/WritingModal';
 
@@ -25,7 +26,7 @@ const App: React.FC = () => {
   const [visibleMenuId, setVisibleMenuId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [articles, setArticles] = useState<Article[]>([]);
-  console.log(articles);
+
   useEffect(() => {
     const loadArticles = async () => {
       const articlesJson = await AsyncStorage.getItem('articles');
@@ -71,7 +72,7 @@ const App: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.navBar}>
           <TouchableOpacity onPress={toggleModal}>
-            <Feather name="edit-3" size={24} color="#6D6875" />
+            <Feather name="edit-3" size={24} color="#B7B7B7" />
           </TouchableOpacity>
         </View>
         <WritingModal
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     flexDirection: 'row',
     paddingHorizontal: 10,
-    marginRight: 14,
+    marginRight: 20,
   },
   listContainer: {
     padding: 10,

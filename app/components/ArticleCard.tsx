@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import eventCheck from '../utils/eventCheck';
+import formatArticleDate from '../utils/formatArticleDate';
 
 interface Article {
   id: string;
@@ -36,7 +37,9 @@ const ArticleCard: React.FC<{
   return (
     <View style={styles.card}>
       <View style={styles.articleHeader}>
-        <Text style={styles.articleDate}>{article.date}</Text>
+        <Text style={styles.articleDate}>
+          {formatArticleDate(article.date)}
+        </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Animated.View
             style={{
@@ -54,15 +57,13 @@ const ArticleCard: React.FC<{
                 <TouchableOpacity onPress={eventCheck}>
                   <Feather name="edit" style={styles.articleHeaderIcon} />
                 </TouchableOpacity>
+
+                <TouchableOpacity onPress={eventCheck}>
+                  <Feather name="eye" style={styles.articleHeaderIcon} />
+                  {/*	todo publish 아닐때 +, 맞으면 - 아이콘으로 변경되게하긔*/}
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => onDelete(article.id)}>
                   <Feather name="trash-2" style={styles.articleHeaderIcon} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={eventCheck}>
-                  <Feather
-                    name="plus-square"
-                    style={styles.articleHeaderIcon}
-                  />
-                  {/*	todo publish 아닐때 +, 맞으면 - 아이콘으로 변경되게하긔*/}
                 </TouchableOpacity>
               </>
             )}

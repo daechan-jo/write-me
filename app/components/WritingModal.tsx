@@ -20,10 +20,12 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import formatDate from '../utils/formatDate';
+import formatWriteDate from '../utils/formatWriteDate';
 
 const deviceHeight = Dimensions.get('window').height;
+const deviceWidth = Dimensions.get('window').width;
 
 interface WritingModalProps {
   isVisible: boolean;
@@ -47,6 +49,8 @@ const WritingModal: React.FC<WritingModalProps> = ({
   onAddArticle,
 }) => {
   const [content, setContent] = useState('');
+  const [isScrollEnabled, setIsScrollEnabled] = useState(true);
+  const backdropOpacity = useSharedValue(0);
 
   const saveArticle = async () => {
     const newArticle: Article = {
@@ -66,7 +70,6 @@ const WritingModal: React.FC<WritingModalProps> = ({
       await AsyncStorage.setItem('articles', JSON.stringify(updatedArticles));
 
       onAddArticle(newArticle);
-
       onClose();
       setContent('');
     } catch (error) {
@@ -75,87 +78,134 @@ const WritingModal: React.FC<WritingModalProps> = ({
   };
 
   const translateY = useSharedValue(0);
+  const isClosing = useSharedValue(false);
+
   useEffect(() => {
-    if (!isVisible) {
-      translateY.value = 0;
+    if (isVisible) {
+      translateY.value = withTiming(0, {
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+      });
+      backdropOpacity.value = withTiming(1, {
+        duration: 300,
+      });
+      isClosing.value = false;
     }
-  }, [isVisible]);
+  }, [isVisible, translateY, isClosing, backdropOpacity]);
+
+  const onCloseModified = () => {
+    isClosing.value = false;
+    onClose();
+  };
 
   const closeGesture = Gesture.Pan()
+    .onStart(() => {
+      isClosing.value = false;
+      runOnJS(setIsScrollEnabled)(false);
+    })
     .onUpdate((event) => {
       translateY.value = event.translationY;
     })
     .onEnd((event) => {
-      // TODO 닫힘 애니메이션 개선 필요.
-      if (translateY.value > deviceHeight / 3) {
+      if (translateY.value > deviceHeight / 4) {
         translateY.value = withTiming(
           deviceHeight,
           {
-            duration: 1,
+            duration: 300,
             easing: Easing.inOut(Easing.cubic),
           },
           () => {
-            runOnJS(onClose)(); // UI스레드를 사용하지 않으면 강제종료댐. 외?
+            runOnJS(onClose)();
           },
         );
+        isClosing.value = true;
       } else {
         translateY.value = withTiming(0, {
-          duration: 1,
+          duration: 300,
           easing: Easing.inOut(Easing.cubic),
         });
       }
     });
 
   const animatedStyle = useAnimatedStyle(() => {
-    let topPosition =
-      translateY.value < -deviceHeight * 0.15
-        ? -deviceHeight * 0.15
-        : translateY.value;
-    topPosition =
-      topPosition > deviceHeight * 0.15 ? deviceHeight * 0.15 : topPosition;
+    let position = isClosing.value
+      ? withTiming(deviceHeight, {
+          duration: 300,
+          easing: Easing.inOut(Easing.cubic),
+        })
+      : translateY.value;
     return {
-      top: deviceHeight * 0.15,
-      transform: [{ translateY: topPosition }],
+      transform: [{ translateY: position }],
     };
   });
 
+  useEffect(() => {
+    backdropOpacity.value = withTiming(isVisible ? 1 : 0, {
+      duration: 300,
+    });
+  }, [isVisible, backdropOpacity]);
+
+  const animatedBackdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
+
   const today = new Date();
-  const formattedToday = formatDate(today);
+  const formattedToday = formatWriteDate(today);
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={isVisible}
-      onRequestClose={onClose}
-    >
-      <GestureDetector gesture={closeGesture}>
-        <Animated.View style={[styles.modalContainer, animatedStyle]}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalDate}>{formattedToday}</Text>
-            <TouchableOpacity onPress={saveArticle}>
-              <Text style={styles.modalCloseButtonText}>완료버튼</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.boundary}></View>
-          <ScrollView style={styles.scrollView}>
-            <TextInput
-              style={styles.textInput}
-              placeholder="오늘의 성찰을 여기에 디폴트로 깔아주면 될듯"
-              multiline
-              value={content}
-              onChangeText={setContent}
-            />
-          </ScrollView>
-        </Animated.View>
-      </GestureDetector>
-    </Modal>
+    <>
+      <Animated.View
+        style={[
+          styles.backdrop,
+          animatedBackdropStyle,
+          {
+            pointerEvents: isVisible ? 'auto' : 'none',
+          },
+        ]}
+      />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isVisible}
+        onRequestClose={onCloseModified}
+      >
+        <GestureDetector gesture={closeGesture}>
+          <Animated.View style={[styles.modalContainer, animatedStyle]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalDate}>{formattedToday}</Text>
+              <TouchableOpacity onPress={saveArticle}>
+                <MaterialCommunityIcons
+                  name="checkbox-marked-outline"
+                  size={30}
+                  color="#B7B7B7"
+                ></MaterialCommunityIcons>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.boundary}></View>
+            <ScrollView
+              style={styles.scrollView}
+              scrollEnabled={isScrollEnabled}
+            >
+              <TextInput
+                style={styles.textInput}
+                placeholder="오늘의 성찰을 여기에 디폴트로 깔아주면 될듯"
+                multiline
+                value={content}
+                onChangeText={setContent}
+              />
+            </ScrollView>
+          </Animated.View>
+        </GestureDetector>
+      </Modal>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
+    marginHorizontal: deviceWidth * 0.03,
+    marginTop: deviceHeight * 0.1,
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -167,6 +217,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  backdrop: {
+    position: 'absolute',
+    width: deviceWidth,
+    height: deviceHeight,
+    backgroundColor: '#B7B7B7',
+    zIndex: -1,
   },
   modalHeader: {
     flexDirection: 'row',

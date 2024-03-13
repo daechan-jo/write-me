@@ -1,4 +1,4 @@
-const formatDate = (date: Date) => {
+const formatWriteDate = (date: Date) => {
   const options: Intl.DateTimeFormatOptions = {
     weekday: 'long',
     month: 'short',
@@ -10,4 +10,4 @@ const formatDate = (date: Date) => {
   return `${parts[0]} ${parts[1]} ${dayWithOrdinal}`;
 };
 
-export default formatDate;
+export default formatWriteDate;
