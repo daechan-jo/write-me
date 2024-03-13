@@ -1,8 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import Article from '../interfaces/Article';
-import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Animated,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import styles from '../styles';
 import eventCheck from '../utils/eventCheck';
 
 const ArticleCard: React.FC<{
@@ -64,5 +69,43 @@ const ArticleCard: React.FC<{
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 15,
+    marginBottom: 15,
+    marginLeft: 10,
+    marginRight: 10,
+  },
+  articleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginLeft: 5,
+    marginRight: 5,
+  },
+  articleDate: {
+    flexDirection: 'row',
+    marginBottom: 5,
+    fontSize: 12,
+    color: 'gray',
+  },
+  articleHeaderIcon: {
+    color: '#B7B7B7',
+    fontSize: 18,
+    marginLeft: 8,
+  },
+  boundary: {
+    padding: 1,
+    backgroundColor: '#F7F7F7',
+    marginBottom: 5,
+  },
+  articleContent: {
+    fontSize: 15,
+    letterSpacing: 0.5,
+    lineHeight: 23,
+  },
+});
 
 export default ArticleCard;
