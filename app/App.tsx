@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   SafeAreaView,
   View,
@@ -7,65 +7,23 @@ import {
   StyleSheet,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import ArticleCard from './src/components/ArticleCard/ArticleCard';
+import WritingModal from './src/components/WritingModal/WritingModal';
+import useArticles from './src/hooks/useArticles';
+import useModal from './src/hooks/useModal';
 
 import { Feather } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import ArticleCard from './components/ArticleCard';
-import WritingModal from './components/WritingModal';
-
-interface Article {
-  id: string;
-  date: string;
-  content: string;
-  bookMark: boolean;
-  publish: boolean;
-}
 
 const App: React.FC = () => {
-  const [visibleMenuId, setVisibleMenuId] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [articles, setArticles] = useState<Article[]>([]);
-
-  useEffect(() => {
-    const loadArticles = async () => {
-      const articlesJson = await AsyncStorage.getItem('articles');
-      if (articlesJson) {
-        let loadedArticles: Article[] = JSON.parse(articlesJson);
-        loadedArticles.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-        );
-        setArticles(loadedArticles);
-      }
-    };
-    loadArticles();
-  }, []);
-
-  const addNewArticle = (newArticle: Article) => {
-    setArticles((currentArticles) => {
-      const updatedArticles = [...currentArticles, newArticle];
-      return updatedArticles.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      );
-    });
-  };
-
-  const deleteArticle = (articleId: string) => {
-    setArticles((currentArticles) => {
-      const filteredArticles = currentArticles.filter(
-        (article) => article.id !== articleId,
-      );
-      AsyncStorage.setItem('articles', JSON.stringify(filteredArticles));
-      return filteredArticles;
-    });
-  };
-
-  const toggleMenu = (id: any) => {
-    visibleMenuId === id ? setVisibleMenuId(null) : setVisibleMenuId(id);
-  };
-  const toggleModal = () => {
-    setModalVisible(!modalVisible);
-  };
+  const {
+    articles,
+    addNewArticle,
+    deleteArticle,
+    articleMenuVisible,
+    toggleMenu,
+  } = useArticles();
+  const { modalVisible, toggleModal } = useModal();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -86,7 +44,7 @@ const App: React.FC = () => {
           renderItem={({ item }) => (
             <ArticleCard
               article={item}
-              menuVisible={visibleMenuId === item.id}
+              menuVisible={articleMenuVisible === item.id}
               toggleMenu={() => toggleMenu(item.id)}
               onDelete={deleteArticle}
             />
@@ -104,21 +62,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   navBar: {
-    height: 50,
+    height: 50, // todo
     alignItems: 'center',
     justifyContent: 'flex-end',
     flexDirection: 'row',
-    paddingHorizontal: 10,
-    marginRight: 20,
+    paddingHorizontal: 10, // todo
+    marginRight: 20, // todo
   },
   listContainer: {
-    padding: 10,
+    padding: 10, // todo
   },
   centeredView: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 22,
+    marginTop: 22, // todo
   },
 });
 

@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Modal,
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  Dimensions,
-} from 'react-native';
+import { Modal, StyleSheet, View, TextInput, Dimensions } from 'react-native';
 import {
   GestureDetector,
   Gesture,
@@ -20,26 +12,14 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import formatWriteDate from '../utils/formatWriteDate';
+import formatWriteDate from '../../utils/formatWriteDate';
+import ModalHeader from './ModalHeader';
+import { Article } from '../../types/Article';
+import { WritingModalProps } from '../../types/WritingModalProps';
 
 const deviceHeight = Dimensions.get('window').height;
 const deviceWidth = Dimensions.get('window').width;
-
-interface WritingModalProps {
-  isVisible: boolean;
-  onClose: () => void;
-  onAddArticle: (newArticle: Article) => void;
-}
-interface Article {
-  id: string;
-  date: string;
-  content: string;
-  bookMark: boolean;
-  publish: boolean;
-}
-
 const generateID = () => Date.now().toString();
 const getCurrentDate = () => new Date().toString();
 
@@ -50,7 +30,35 @@ const WritingModal: React.FC<WritingModalProps> = ({
 }) => {
   const [content, setContent] = useState('');
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
+
   const backdropOpacity = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const isClosing = useSharedValue(false);
+
+  const today = formatWriteDate(new Date());
+
+  useEffect(() => {
+    if (isVisible) {
+      translateY.value = withTiming(0, {
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+      });
+      backdropOpacity.value = withTiming(1, {
+        duration: 300,
+      });
+      isClosing.value = false;
+    }
+  }, [isVisible, translateY, isClosing, backdropOpacity]);
+
+  useEffect(() => {
+    backdropOpacity.value = withTiming(isVisible ? 1 : 0, {
+      duration: 300,
+    });
+  }, [isVisible, backdropOpacity]);
+
+  const animatedBackdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
 
   const saveArticle = async () => {
     const newArticle: Article = {
@@ -60,7 +68,6 @@ const WritingModal: React.FC<WritingModalProps> = ({
       bookMark: false,
       publish: false,
     };
-
     try {
       const existingArticlesJson = await AsyncStorage.getItem('articles');
       const existingArticles = existingArticlesJson
@@ -76,22 +83,6 @@ const WritingModal: React.FC<WritingModalProps> = ({
       console.error('Failed to save the article:', error);
     }
   };
-
-  const translateY = useSharedValue(0);
-  const isClosing = useSharedValue(false);
-
-  useEffect(() => {
-    if (isVisible) {
-      translateY.value = withTiming(0, {
-        duration: 500,
-        easing: Easing.out(Easing.cubic),
-      });
-      backdropOpacity.value = withTiming(1, {
-        duration: 300,
-      });
-      isClosing.value = false;
-    }
-  }, [isVisible, translateY, isClosing, backdropOpacity]);
 
   const onCloseModified = () => {
     isClosing.value = false;
@@ -139,19 +130,6 @@ const WritingModal: React.FC<WritingModalProps> = ({
     };
   });
 
-  useEffect(() => {
-    backdropOpacity.value = withTiming(isVisible ? 1 : 0, {
-      duration: 300,
-    });
-  }, [isVisible, backdropOpacity]);
-
-  const animatedBackdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value,
-  }));
-
-  const today = new Date();
-  const formattedToday = formatWriteDate(today);
-
   return (
     <>
       <Animated.View
@@ -171,16 +149,7 @@ const WritingModal: React.FC<WritingModalProps> = ({
       >
         <GestureDetector gesture={closeGesture}>
           <Animated.View style={[styles.modalContainer, animatedStyle]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalDate}>{formattedToday}</Text>
-              <TouchableOpacity onPress={saveArticle}>
-                <MaterialCommunityIcons
-                  name="checkbox-marked-outline"
-                  size={30}
-                  color="#B7B7B7"
-                ></MaterialCommunityIcons>
-              </TouchableOpacity>
-            </View>
+            <ModalHeader formattedDate={today} onSaveArticle={saveArticle} />
             <View style={styles.boundary}></View>
             <ScrollView
               style={styles.scrollView}
@@ -224,24 +193,6 @@ const styles = StyleSheet.create({
     height: deviceHeight,
     backgroundColor: '#B7B7B7',
     zIndex: -1,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 15,
-    marginRight: 10,
-  },
-  modalDate: {
-    marginLeft: 10,
-    fontSize: 24,
-    fontStyle: 'italic',
-    fontWeight: 'bold',
-    color: '#B7B7B7',
-  },
-  modalCloseButtonText: {
-    fontSize: 18,
-    color: '#B7B7B7',
   },
   boundary: {
     padding: 1,
