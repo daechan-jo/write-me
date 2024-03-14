@@ -2,7 +2,16 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import formatArticleDate from '../../utils/formatArticleDate';
 import IconButton from './IconButton';
-import { ArticleHeaderProps } from '../../types/ArticleHeaderProps';
+
+export interface ArticleHeaderProps {
+  date: string;
+  onEdit: () => void;
+  onToggleVisibility: () => void;
+  onDelete: () => void;
+  toggleMenu: () => void;
+  menuVisible: boolean;
+  bookMark: boolean;
+}
 
 const ArticleHeader: React.FC<ArticleHeaderProps> = ({
   date,
@@ -16,7 +25,6 @@ const ArticleHeader: React.FC<ArticleHeaderProps> = ({
   <View style={styles.articleHeader}>
     <Text style={styles.articleDate}>{formatArticleDate(date)}</Text>
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      {/* Icon Buttons */}
       {bookMark && <IconButton name="bookmark" onPress={onEdit} />}
       {menuVisible && (
         <>
@@ -39,7 +47,7 @@ const styles = StyleSheet.create({
   },
   articleDate: {
     marginBottom: 5,
-    fontSize: 12,
+    fontSize: 12, // todo rem 단위 변경
     color: 'gray',
   },
 });

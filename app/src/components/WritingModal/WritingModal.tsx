@@ -16,7 +16,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import formatWriteDate from '../../utils/formatWriteDate';
 import ModalHeader from './ModalHeader';
 import { Article } from '../../types/Article';
-import { WritingModalProps } from '../../types/WritingModalProps';
+
+export interface WritingModalProps {
+  isVisible: boolean;
+  onClose: () => void;
+  onAddArticle: (newArticle: Article) => void;
+}
 
 const deviceHeight = Dimensions.get('window').height;
 const deviceWidth = Dimensions.get('window').width;
@@ -36,7 +41,6 @@ const WritingModal: React.FC<WritingModalProps> = ({
   const isClosing = useSharedValue(false);
 
   const today = formatWriteDate(new Date());
-
   useEffect(() => {
     if (isVisible) {
       translateY.value = withTiming(0, {
@@ -192,7 +196,6 @@ const styles = StyleSheet.create({
     width: deviceWidth,
     height: deviceHeight,
     backgroundColor: '#B7B7B7',
-    zIndex: -1,
   },
   boundary: {
     padding: 1,
