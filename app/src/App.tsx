@@ -8,10 +8,10 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import ArticleCard from './src/components/ArticleCard/ArticleCard';
-import WritingModal from './src/components/WritingModal/WritingModal';
-import useArticles from './src/hooks/useArticles';
-import useModal from './src/hooks/useModal';
+import ArticleCard from './components/ArticleCard/ArticleCard';
+import WritingModal from './components/WritingModal/WritingModal';
+import useArticles from './hooks/useArticles';
+import useModal from './hooks/useModal';
 
 import { Feather } from '@expo/vector-icons';
 
