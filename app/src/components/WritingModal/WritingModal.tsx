@@ -73,12 +73,17 @@ const WritingModal: React.FC<WritingModalProps> = ({
       publish: false,
     };
     try {
-      const existingArticlesJson = await AsyncStorage.getItem('articles');
-      const existingArticles = existingArticlesJson
-        ? JSON.parse(existingArticlesJson)
-        : [];
-      const updatedArticles = [...existingArticles, newArticle];
-      await AsyncStorage.setItem('articles', JSON.stringify(updatedArticles));
+      await AsyncStorage.setItem(
+        `article:${newArticle.id}`,
+        JSON.stringify(newArticle),
+      );
+
+      const indexJson = await AsyncStorage.getItem('articleIndex');
+      const index = indexJson ? JSON.parse(indexJson) : [];
+
+      const updatedIndex = [...index, newArticle.id];
+
+      await AsyncStorage.setItem('articleIndex', JSON.stringify(updatedIndex));
 
       onAddArticle(newArticle);
       onClose();
